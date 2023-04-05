@@ -9,7 +9,7 @@ resource "proxmox_vm_qemu" "pi-hole-test" {
     vmid = "5000"
     name = "pi-hole-test"
     desc = "pi-hole DNS black hole and DNS server"
-
+    full_clone = true
     # VM Advanced General Settings
     onboot = true 
 
@@ -17,22 +17,25 @@ resource "proxmox_vm_qemu" "pi-hole-test" {
     clone = "ubuntu-server-2204-cloudinit-template"
 
     # VM System Settings
-    agent = 1
+    agent = 0
     
     # VM CPU Settings
     cores = 2
     sockets = 1
-    cpu = "host"    
     
     # VM Memory Settings
     memory = 2048
 
+    # disk settings for agent
+    scsihw = "virtio-scsi-pci"
+    bootdisk = "scsi0"
+    
     disk {
+        slot = 0
         type = "scsi"
         # set disk size here. leave it small for testing because expanding the disk takes time.
         size = "10G"
         storage = "local-lvm"
-        iothread = 0
   }
     # VM Network Settings
     network {
