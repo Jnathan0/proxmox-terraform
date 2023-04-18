@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  vault:
+    image: hashicorp/vault:1.13
+    container_name: vault
+    ports:
+        - "8200:8200"
+    volumes:
+        - /private-volume:/vault/file:rw
+        - /vault:/vault/config:rw
+    cap_add:
+        - IPC_LOCK
+    entrypoint: vault server -config=/vault/config/vault.json

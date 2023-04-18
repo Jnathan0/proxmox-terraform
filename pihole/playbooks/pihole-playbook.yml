@@ -1,0 +1,46 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - name: update apt repository
+      command: sudo apt update
+      register: apt_status
+      until: apt_status is success
+      delay: 6
+      retries: 10
+    
+    - name: install pip3
+      command: sudo apt install -y python3-pip
+      register: apt_status
+      until: apt_status is success
+      delay: 6
+      retries: 10
+
+    - name: install docker python library
+      command: pip install docker
+
+    - name: create pihole docker dir - /etc/pihole
+      command: mkdir -p /etc/pihole
+
+    - name: create pihole docker dir - /etc-dnsmasq.d
+      command: mkdir -p /etc-dnsmasq.d
+
+    - name: wait for docker service
+      service:
+        name: docker
+        state: started 
+  
+    - name: launch docker container
+      docker_container:
+        name: pihole
+        state: started
+        image: pihole/pihole:2023.03.1
+        pull: true
+        restart_policy: unless-stopped
+        network_mode: host
+        env:
+          TZ: 'America/Los_Angeles'
+        volumes:
+          - '/etc/pihole:/etc/pihole/'
+          - '/etc-dnsmasq.d:/etc/dnsmasq.d'

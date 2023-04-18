@@ -31,6 +31,10 @@ variable "agent_ssh_pubkey" {
     type = string
 }
 
+variable "agent_ssh_private_key" {
+    type = string
+}
+
 provider "proxmox" {
 
     pm_api_url = var.proxmox_api_url

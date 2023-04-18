@@ -2,14 +2,15 @@
 # ---
 # Create a new VM from a clone
 
-resource "proxmox_vm_qemu" "pihole-test" {
+resource "proxmox_vm_qemu" "vault" {
     
     # VM General Settings
     target_node = "proxmox"
-    vmid = "5000"
-    name = "pihole-test"
-    desc = "pi-hole DNS black hole and DNS server"
+    vmid = "3000"
+    name = "vault"
+    desc = "Vault secrets store"
     full_clone = true
+    cpu = "host"
     # VM Advanced General Settings
     onboot = true 
 
@@ -42,7 +43,8 @@ resource "proxmox_vm_qemu" "pihole-test" {
     network {
         bridge = "vmbr0"
         model  = "virtio"
-        macaddr = "2A:B8:A6:CD:B9:98"
+        macaddr = "AA:88:40:8B:D2:28"
+        firewall = false
     }
 
     lifecycle {
@@ -52,10 +54,10 @@ resource "proxmox_vm_qemu" "pihole-test" {
     }
 
     # VM Cloud-Init Settings
-    os_type = "cloud-init"
+    # os_type = "cloud-init"
 
     # (Optional) IP Address and Gateway
-    ipconfig0 = "ip=192.168.0.120/24,gw=192.168.0.1"
+    ipconfig0 = "ip=192.168.0.125/24,gw=192.168.0.1"
     
     # (Optional) Default User
     ciuser = "user"
@@ -67,10 +69,11 @@ resource "proxmox_vm_qemu" "pihole-test" {
     EOF
 
   provisioner "remote-exec" {
+
     inline = ["echo Connection Done!"]
 
     connection {
-      host        = "192.168.0.120"
+      host        = "192.168.0.125"
       type        = "ssh"
       user        = "user"
       private_key = file(var.controller_ssh_private_key)
@@ -78,6 +81,6 @@ resource "proxmox_vm_qemu" "pihole-test" {
   }
 
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u user -i '192.168.0.120,' --private-key ${var.controller_ssh_private_key} -e 'pub_key=${var.controller_ssh_pubkey}' playbooks/pihole-playbook.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u user -i '192.168.0.125,' --private-key ${var.controller_ssh_private_key} -e 'pub_key=${var.controller_ssh_pubkey}' playbooks/vault-playbook.yml"
   }
 }
