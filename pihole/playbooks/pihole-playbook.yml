@@ -25,22 +25,41 @@
 
     - name: create pihole docker dir - /etc-dnsmasq.d
       command: mkdir -p /etc-dnsmasq.d
+    
+    - name: create service directory for docker compose file
+      file:
+        path: /opt/pihole
+        state: directory
+        mode: '0755'
 
-    - name: wait for docker service
+    - name: copy pihole docker compose file
+      copy:
+        src: ../files/docker-compose.yml
+        dest: /opt/pihole/docker-compose.yml
+        mode: '0755'
+
+    - name: copy pihole systemd service file
+      copy:
+        src: ../files/pihole.service
+        dest: /etc/systemd/system/pihole.service
+        mode: '0755'
+
+    - name: wait for docker daemon service
       service:
         name: docker
         state: started 
-  
-    - name: launch docker container
-      docker_container:
+
+    - name: reload systemd daemons
+      systemd:
+        daemon_reload: true
+
+    - name: enable pihole docker-compose service
+      systemd:
         name: pihole
+        enabled: true
+        masked: no
+
+    - name: start pihole docker-compose service
+      systemd:
         state: started
-        image: pihole/pihole:2023.03.1
-        pull: true
-        restart_policy: unless-stopped
-        network_mode: host
-        env:
-          TZ: 'America/Los_Angeles'
-        volumes:
-          - '/etc/pihole:/etc/pihole/'
-          - '/etc-dnsmasq.d:/etc/dnsmasq.d'
+        name: pihole
